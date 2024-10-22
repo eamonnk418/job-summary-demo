@@ -29,10 +29,8 @@ jobs:
       - name: Append relevant logs to job summary
         run: |
           echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
-          echo "| Key                          | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|------------------------------|-------|" >> $GITHUB_STEP_SUMMARY
           
-          # Extract specific log fields into markdown table format
+          # Extract specific log fields
           image=$(sed -n 's/Scanning virtual machine image //p' relevant_log.txt)
           critical=$(sed -n 's/Vulnerable packages: CRITICAL: \([0-9]*\),.*/\1/p' relevant_log.txt)
           high=$(sed -n 's/Vulnerable packages:.*HIGH: \([0-9]*\),.*/\1/p' relevant_log.txt)
@@ -40,9 +38,8 @@ jobs:
           low=$(sed -n 's/Vulnerable packages:.*LOW: \([0-9]*\).*/\1/p' relevant_log.txt)
           scan_report=$(sed -n 's/Scan report: //p' relevant_log.txt)
           
-          echo "| Scanned Image                 | $image |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vulnerable Packages - CRITICAL| $critical |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vulnerable Packages - HIGH    | $high |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vulnerable Packages - MEDIUM  | $medium |" >> $GITHUB_STEP_SUMMARY
-          echo "| Vulnerable Packages - LOW     | $low |" >> $GITHUB_STEP_SUMMARY
-          echo "| Scan Report                   | [Link]($scan_report) |" >> $GITHUB_STEP_SUMMARY
+          # Create the markdown table with multiple columns
+          echo "| Scanned Image | CRITICAL | HIGH | MEDIUM | LOW | Scan Report |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------------|----------|------|--------|-----|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| $image | $critical | $high | $medium | $low | [Link]($scan_report) |" >> $GITHUB_STEP_SUMMARY
+
