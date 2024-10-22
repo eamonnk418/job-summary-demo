@@ -9,19 +9,26 @@ jobs:
     steps:
       - name: Generate a long log (Example)
         run: |
-          echo "This is a long log" > log.txt
-          for i in {1..10000}; do echo "Line $i"; done >> log.txt
-          echo "Error at line 5000" >> log.txt
-          echo "Another Error at line 7000" >> log.txt
+          echo "Generating a simulated log..."
+          echo "2024-10-22T11:22:40.5822638Z  __      _(_)____   ___| (_)" >> log.txt
+          echo "2024-10-22T11:22:40.5822937Z  \\ \\ /\\ / / |_  /  / __| | |" >> log.txt
+          echo "2024-10-22T11:22:40.5823229Z   \\ V  V /| |/ /  | (__| | |" >> log.txt
+          echo "2024-10-22T11:22:40.5823503Z    \\_/\\_/ |_/___|  \\___|_|_|" >> log.txt
+          echo "2024-10-22T11:22:40.5824576Z Scanning virtual machine image ami-abcdef123456789" >> log.txt
+          echo "2024-10-22T11:22:40.5833806Z Vulnerable packages: CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0" >> log.txt
+          echo "2024-10-22T11:22:40.5836104Z Scan was successfully performed and no vulnerabilities were detected" >> log.txt
+          echo "2024-10-22T11:22:40.5837769Z Scan report: https://app.wiz.io/findings/example/12312454" >> log.txt
+          echo "This is the noisy part" >> log.txt
+          for i in {1..10000}; do echo "Noise $i"; done >> log.txt
 
-      - name: Filter Error Logs
+      - name: Extract relevant logs using sed
         run: |
-          # This will filter lines containing 'Error' into a new file
-          grep "Error" log.txt > filtered_log.txt
+          # Extract log between the start and end patterns
+          sed -n '/2024-10-22T11:22:40.5822638Z/,/Scan report:/p' log.txt > relevant_log.txt
 
-      - name: Append filtered logs to job summary
+      - name: Append relevant logs to job summary
         run: |
-          echo "## Filtered Logs" >> $GITHUB_STEP_SUMMARY
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat filtered_log.txt >> $GITHUB_STEP_SUMMARY
+          cat relevant_log.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
