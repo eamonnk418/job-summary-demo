@@ -7,5 +7,21 @@ jobs:
   job-summary:
     runs-on: ubuntu-latest
     steps:
-      - name: Adding markdown
-        run: echo '### Hello world! ' >> $GITHUB_STEP_SUMMARY
+      - name: Generate a long log (Example)
+        run: |
+          echo "This is a long log" > log.txt
+          for i in {1..10000}; do echo "Line $i"; done >> log.txt
+          echo "Error at line 5000" >> log.txt
+          echo "Another Error at line 7000" >> log.txt
+
+      - name: Filter Error Logs
+        run: |
+          # This will filter lines containing 'Error' into a new file
+          grep "Error" log.txt > filtered_log.txt
+
+      - name: Append filtered logs to job summary
+        run: |
+          echo "## Filtered Logs" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat filtered_log.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
