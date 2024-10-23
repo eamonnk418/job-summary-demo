@@ -25,18 +25,18 @@ jobs:
         run: |
           echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
           
-          # Use awk to extract and format fields as multiple rows
+          # Use awk to extract and format fields more resiliently
           awk '
             /Scanning virtual machine image/ { image=$NF }
             /Vulnerable packages:/ {
-              match($0, /CRITICAL: ([0-9]+)/, critical_arr)
-              match($0, /HIGH: ([0-9]+)/, high_arr)
-              match($0, /MEDIUM: ([0-9]+)/, medium_arr)
-              match($0, /LOW: ([0-9]+)/, low_arr)
-              critical=critical_arr[1]
-              high=high_arr[1]
-              medium=medium_arr[1]
-              low=low_arr[1]
+              match($0, /CRITICAL: *([0-9]+)/, critical_arr)
+              match($0, /HIGH: *([0-9]+)/, high_arr)
+              match($0, /MEDIUM: *([0-9]+)/, medium_arr)
+              match($0, /LOW: *([0-9]+)/, low_arr)
+              critical=(critical_arr[1] != "") ? critical_arr[1] : "N/A"
+              high=(high_arr[1] != "") ? high_arr[1] : "N/A"
+              medium=(medium_arr[1] != "") ? medium_arr[1] : "N/A"
+              low=(low_arr[1] != "") ? low_arr[1] : "N/A"
             }
             /Scan report:/ { scan_report=$NF }
             END {
