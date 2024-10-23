@@ -21,25 +21,23 @@ jobs:
           echo "This is the noisy part" >> log.txt
           for i in {1..10000}; do echo "Noise $i"; done >> log.txt
 
-      - name: Extract relevant logs using sed
-        run: |
-          # Extract log between the start and end patterns
-          sed -n '/Scanning virtual machine image/,/Scan report:/p' log.txt > relevant_log.txt
-
-      - name: Append relevant logs to job summary
+      - name: Extract and append relevant logs using awk
         run: |
           echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
           
-          # Extract specific log fields
-          image=$(sed -n 's/Scanning virtual machine image //p' relevant_log.txt)
-          critical=$(sed -n 's/Vulnerable packages: CRITICAL: \([0-9]*\),.*/\1/p' relevant_log.txt)
-          high=$(sed -n 's/Vulnerable packages:.*HIGH: \([0-9]*\),.*/\1/p' relevant_log.txt)
-          medium=$(sed -n 's/Vulnerable packages:.*MEDIUM: \([0-9]*\),.*/\1/p' relevant_log.txt)
-          low=$(sed -n 's/Vulnerable packages:.*LOW: \([0-9]*\).*/\1/p' relevant_log.txt)
-          scan_report=$(sed -n 's/Scan report: //p' relevant_log.txt)
-          
-          # Create the markdown table with multiple columns
-          echo "| Scanned Image | CRITICAL | HIGH | MEDIUM | LOW | Scan Report |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------------|----------|------|--------|-----|-------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| $image | $critical | $high | $medium | $low | [Link]($scan_report) |" >> $GITHUB_STEP_SUMMARY
-
+          # Use awk to extract and format fields as multiple rows
+          awk '
+            /Scanning virtual machine image/ { image=$NF }
+            /Vulnerable packages:/ { critical=$3; high=$5; medium=$7; low=$9 }
+            /Scan report:/ { scan_report=$NF }
+            END {
+              printf "| Field            | Value                          |\n" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              printf "|------------------|-------------------------------|\n" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              printf "| Scanned Image    | %s                             |\n", image >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              printf "| CRITICAL         | %s                             |\n", critical >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              printf "| HIGH             | %s                             |\n", high >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              printf "| MEDIUM           | %s                             |\n", medium >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              printf "| LOW              | %s                             |\n", low >> ENVIRON["GITHUB_STEP_SUMMARY"]
+              printf "| Scan Report      | [Link](%s)                     |\n", scan_report >> ENVIRON["GITHUB_STEP_SUMMARY"]
+            }
+          ' log.txt
