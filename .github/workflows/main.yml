@@ -29,10 +29,14 @@ jobs:
           awk '
             /Scanning virtual machine image/ { image=$NF }
             /Vulnerable packages:/ {
-              critical=$3
-              high=$5
-              medium=$7
-              low=$9
+              match($0, /CRITICAL: ([0-9]+)/, critical_arr)
+              match($0, /HIGH: ([0-9]+)/, high_arr)
+              match($0, /MEDIUM: ([0-9]+)/, medium_arr)
+              match($0, /LOW: ([0-9]+)/, low_arr)
+              critical=critical_arr[1]
+              high=high_arr[1]
+              medium=medium_arr[1]
+              low=low_arr[1]
             }
             /Scan report:/ { scan_report=$NF }
             END {
