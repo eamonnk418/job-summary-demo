@@ -28,7 +28,12 @@ jobs:
           # Use awk to extract and format fields as multiple rows
           awk '
             /Scanning virtual machine image/ { image=$NF }
-            /Vulnerable packages:/ { critical=$3; high=$5; medium=$7; low=$9 }
+            /Vulnerable packages:/ {
+              critical=$3
+              high=$5
+              medium=$7
+              low=$9
+            }
             /Scan report:/ { scan_report=$NF }
             END {
               printf "| Field            | Value                          |\n" >> ENVIRON["GITHUB_STEP_SUMMARY"]
